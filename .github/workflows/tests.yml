@@ -12,21 +12,6 @@ jobs:
     name: Unit Tests (PHP 8.2)
     runs-on: ubuntu-latest
     
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-          POSTGRES_DB: app
-        options: >-
-          --health-cmd "pg_isready -U app -d app"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,7 +31,7 @@ jobs:
         run: |
           cat > .env << EOF
           APP_ENV=${{ secrets.APP_ENV || 'testing' }}
-          DB_HOST=${{ secrets.DB_HOST || 'postgres' }}
+          DB_HOST=${{ secrets.DB_HOST || 'db' }}
           DB_PORT=${{ secrets.DB_PORT || '5432' }}
           DB_NAME=${{ secrets.DB_NAME || 'app' }}
           DB_USER=${{ secrets.DB_USER || 'app' }}
@@ -59,13 +44,17 @@ jobs:
       - name: Build PHP Docker image
         run: docker compose build php
       
+      - name: Start database
+        run: docker compose up -d db
+      
       - name: Install dependencies
         run: docker compose run --rm php composer install --no-interaction --prefer-dist --optimize-autoloader
       
       - name: Wait for database
         run: |
+          echo "Waiting for PostgreSQL to be ready..."
           for i in {1..30}; do
-            docker compose run --rm php php -r "new PDO('pgsql:host=postgres;port=5432;dbname=app', 'app', 'app');" 2>/dev/null && break || sleep 1
+            docker compose exec -T db pg_isready -U app -d app >/dev/null 2>&1 && echo "Database ready!" && break || sleep 1
           done
       
       - name: Run database migrations
@@ -106,6 +95,10 @@ jobs:
           name: test-results
           path: |
             .phpunit.result.cache
+      
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
   
   lint:
     name: Code Quality
