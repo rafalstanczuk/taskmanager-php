@@ -1,0 +1,65 @@
+image: docker:24-cli
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  POSTGRES_DB: php_api
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+services:
+  - docker:24-dind
+  - postgres:16
+
+stages:
+  - build
+  - test
+  - deploy
+
+before_script:
+  - apk add --no-cache docker-compose
+  - docker compose version
+
+build:
+  stage: build
+  script:
+    - docker compose build php
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - vendor/
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 1 hour
+
+unit-tests:
+  stage: test
+  dependencies:
+    - build
+  script:
+    - echo "DB_HOST=postgres" > .env
+    - echo "DB_PORT=5432" >> .env
+    - echo "DB_NAME=${POSTGRES_DB}" >> .env
+    - echo "DB_USER=${POSTGRES_USER}" >> .env
+    - echo "DB_PASSWORD=${POSTGRES_PASSWORD}" >> .env
+    - docker compose run --rm php composer install --no-interaction --prefer-dist
+    - docker compose run --rm php php scripts/migrate.php
+    - docker compose run --rm php vendor/bin/phpunit --testsuite Unit --testdox
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  artifacts:
+    reports:
+      junit: phpunit-report.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+
+lint:
+  stage: test
+  dependencies:
+    - build
+  script:
+    - docker compose run --rm php composer install --no-interaction
+    - docker compose run --rm php find src tests -name "*.php" -exec php -l {} \;
+  allow_failure: true
+
