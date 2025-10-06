@@ -41,6 +41,7 @@ Complete guide to the Task Manager PHP project documentation.
 | [Server Management](docs/SERVER_MANAGEMENT.md) | Server control script documentation |
 | [Server Quick Start](SERVER_QUICK_START.md) | One-page server reference |
 | [CI/CD Guide](docs/CI_CD.md) | Continuous integration setup |
+| [GitHub Setup](docs/GITHUB_SETUP.md) | GitHub Secrets and environment variables configuration |
 
 ## Find Documentation by Task
 
@@ -67,6 +68,7 @@ Complete guide to the Task Manager PHP project documentation.
 
 #### Set Up CI/CD
 → [CI/CD Guide](docs/CI_CD.md) - GitHub Actions, GitLab CI setup  
+→ [GitHub Setup](docs/GITHUB_SETUP.md) - Configure secrets and environment variables  
 → [Testing Guide](docs/TESTING.md) - CI/CD test integration
 
 #### Understand the Architecture

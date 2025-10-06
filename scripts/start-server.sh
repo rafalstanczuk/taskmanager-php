@@ -14,6 +14,14 @@ readonly NC='\033[0m' # No Color
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 readonly CONTAINER_NAME="taskmanager_php_server"
+
+# Load .env file if it exists (before using env vars)
+if [ -f "${PROJECT_ROOT}/.env" ]; then
+    set -a  # automatically export all variables
+    source "${PROJECT_ROOT}/.env"
+    set +a
+fi
+
 readonly DEFAULT_PORT="${PORT:-8000}"
 readonly DB_READY_TIMEOUT="${DB_READY_TIMEOUT:-30}"
 

@@ -73,15 +73,21 @@ The application uses environment variables for configuration. Create a `.env` fi
 cp .env.example .env
 ```
 
-**Available Variables:**
-- `DB_HOST` - Database host (default: `db`)
-- `DB_PORT` - Database port (default: `5432`)
-- `DB_NAME` - Database name (default: `app`)
-- `DB_USER` - Database user (default: `app`)
-- `DB_PASSWORD` - Database password (default: `app`)
-- `APP_ENV` - Application environment (default: `local`)
+**⚠️ All Variables are REQUIRED (no defaults):**
 
-**Note:** The application works with defaults if `.env` is not present, making setup optional for development.
+| Variable | Description | Example Value |
+|----------|-------------|---------------|
+| `DB_HOST` | Database host | `db` |
+| `DB_PORT` | Database port | `5432` |
+| `DB_NAME` | Database name | `app` |
+| `DB_USER` | Database user | `app` |
+| `DB_PASSWORD` | Database password | `app` |
+| `APP_ENV` | Application environment | `local` / `testing` / `production` |
+| `PORT` | Server port | `8000` |
+| `DB_READY_TIMEOUT` | Database ready timeout (seconds) | `30` |
+| `TEST_SERVER_PORT` | Test server port | `8001` |
+
+**⚠️ Important:** The application will **fail** if any environment variable is missing. This ensures explicit configuration and prevents silent fallback to defaults.
 
 ### Testing
 

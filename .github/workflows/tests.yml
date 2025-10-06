@@ -42,21 +42,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
       
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          APP_ENV=${{ secrets.APP_ENV || 'testing' }}
+          DB_HOST=${{ secrets.DB_HOST || 'postgres' }}
+          DB_PORT=${{ secrets.DB_PORT || '5432' }}
+          DB_NAME=${{ secrets.DB_NAME || 'app' }}
+          DB_USER=${{ secrets.DB_USER || 'app' }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD || 'app' }}
+          PORT=${{ secrets.PORT || '8000' }}
+          DB_READY_TIMEOUT=${{ secrets.DB_READY_TIMEOUT || '30' }}
+          TEST_SERVER_PORT=${{ secrets.TEST_SERVER_PORT || '8001' }}
+          EOF
+      
       - name: Build PHP Docker image
         run: docker compose build php
       
       - name: Install dependencies
         run: docker compose run --rm php composer install --no-interaction --prefer-dist --optimize-autoloader
-      
-      - name: Create .env file
-        run: |
-          cat > .env << EOF
-          DB_HOST=postgres
-          DB_PORT=5432
-          DB_NAME=app
-          DB_USER=app
-          DB_PASSWORD=app
-          EOF
       
       - name: Wait for database
         run: |
@@ -110,6 +114,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          APP_ENV=${{ secrets.APP_ENV || 'testing' }}
+          DB_HOST=${{ secrets.DB_HOST_LINT || 'localhost' }}
+          DB_PORT=${{ secrets.DB_PORT || '5432' }}
+          DB_NAME=${{ secrets.DB_NAME || 'app' }}
+          DB_USER=${{ secrets.DB_USER || 'app' }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD || 'app' }}
+          PORT=${{ secrets.PORT || '8000' }}
+          DB_READY_TIMEOUT=${{ secrets.DB_READY_TIMEOUT || '30' }}
+          TEST_SERVER_PORT=${{ secrets.TEST_SERVER_PORT || '8001' }}
+          EOF
       
       - name: Build PHP Docker image
         run: docker compose build php

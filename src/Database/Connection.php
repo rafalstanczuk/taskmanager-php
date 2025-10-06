@@ -19,11 +19,18 @@ final class Connection
             return self::$pdo;
         }
 
-        $host = env('DB_HOST', '127.0.0.1') ?? '127.0.0.1';
-        $port = (int)(env('DB_PORT', '5432') ?? '5432');
-        $db   = env('DB_NAME', 'app') ?? 'app';
-        $user = env('DB_USER', 'app') ?? 'app';
-        $pass = env('DB_PASSWORD', 'app') ?? 'app';
+        $host = env('DB_HOST');
+        $port = (int)env('DB_PORT');
+        $db   = env('DB_NAME');
+        $user = env('DB_USER');
+        $pass = env('DB_PASSWORD');
+        
+        if (!$host || !$port || !$db || !$user || $pass === null) {
+            throw new \RuntimeException(
+                'Missing required environment variables: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD. ' .
+                'Please ensure .env file exists and contains all required values.'
+            );
+        }
 
         $dsn = sprintf('pgsql:host=%s;port=%d;dbname=%s', $host, $port, $db);
 
