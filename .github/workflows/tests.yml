@@ -1,134 +1,92 @@
-name: Tests
+name: PHP Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
-  unit-tests:
-    name: Unit Tests (PHP 8.2)
+  test:
     runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      
-      - name: Create .env file
-        run: |
-          cat > .env << EOF
-          APP_ENV=${{ secrets.APP_ENV || 'testing' }}
-          DB_HOST=${{ secrets.DB_HOST || 'db' }}
-          DB_PORT=${{ secrets.DB_PORT || '5432' }}
-          DB_NAME=${{ secrets.DB_NAME || 'app' }}
-          DB_USER=${{ secrets.DB_USER || 'app' }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD || 'app' }}
-          PORT=${{ secrets.PORT || '8000' }}
-          DB_READY_TIMEOUT=${{ secrets.DB_READY_TIMEOUT || '30' }}
-          TEST_SERVER_PORT=${{ secrets.TEST_SERVER_PORT || '8001' }}
-          EOF
-      
-      - name: Build PHP Docker image
-        run: docker compose build php
-      
-      - name: Start database
-        run: docker compose up -d db
-      
-      - name: Install dependencies
-        run: docker compose run --rm php composer install --no-interaction --prefer-dist --optimize-autoloader
-      
-      - name: Wait for database
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          for i in {1..30}; do
-            docker compose exec -T db pg_isready -U app -d app >/dev/null 2>&1 && echo "Database ready!" && break || sleep 1
-          done
-      
-      - name: Run database migrations
-        run: docker compose run --rm php php scripts/migrate.php
-      
-      - name: Run unit tests
-        run: docker compose run --rm php vendor/bin/phpunit --testsuite Unit --testdox
-      
-      - name: Run Gantt drag logic tests
-        run: docker compose run --rm php vendor/bin/phpunit tests/Unit/GanttDragLogicTest.php --testdox
-      
-      - name: Run Gantt timeline integration tests
-        run: docker compose run --rm php vendor/bin/phpunit tests/Integration/GanttTimelineTest.php --testdox
-      
-      - name: Generate test summary
-        if: always()
-        run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ Unit Tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Total: 62 tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Connection: 7 tests" >> $GITHUB_STEP_SUMMARY
-          echo "- **Gantt Drag Logic: 19 tests**" >> $GITHUB_STEP_SUMMARY
-          echo "- Helper Functions: 5 tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Router: 8 tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Task: 6 tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Repository: 17 tests" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ Integration Tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Gantt Timeline: 10 tests" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total: 72 automated tests passing** 🎉" >> $GITHUB_STEP_SUMMARY
-      
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            .phpunit.result.cache
-      
-      - name: Cleanup
-        if: always()
-        run: docker compose down -v
-  
-  lint:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Create .env file
-        run: |
-          cat > .env << EOF
-          APP_ENV=${{ secrets.APP_ENV || 'testing' }}
-          DB_HOST=${{ secrets.DB_HOST_LINT || 'localhost' }}
-          DB_PORT=${{ secrets.DB_PORT || '5432' }}
-          DB_NAME=${{ secrets.DB_NAME || 'app' }}
-          DB_USER=${{ secrets.DB_USER || 'app' }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD || 'app' }}
-          PORT=${{ secrets.PORT || '8000' }}
-          DB_READY_TIMEOUT=${{ secrets.DB_READY_TIMEOUT || '30' }}
-          TEST_SERVER_PORT=${{ secrets.TEST_SERVER_PORT || '8001' }}
-          EOF
-      
-      - name: Build PHP Docker image
-        run: docker compose build php
-      
-      - name: Install dependencies
-        run: docker compose run --rm php composer install --no-interaction --prefer-dist
-      
-      - name: Check PHP syntax
-        run: |
-          docker compose run --rm php find src tests -name "*.php" -exec php -l {} \;
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_pgsql
+        coverage: xdebug
+        tools: composer:v2, phpunit
+
+    - name: Create .env file
+      run: |
+        cat > .env << EOF
+        APP_ENV=${{ secrets.APP_ENV || 'testing' }}
+        DB_HOST=${{ secrets.DB_HOST || 'localhost' }}
+        DB_PORT=${{ secrets.DB_PORT || '5432' }}
+        DB_NAME=${{ secrets.DB_NAME || 'app' }}
+        DB_USER=${{ secrets.DB_USER || 'app' }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD || 'app' }}
+        PORT=${{ secrets.PORT || '8000' }}
+        DB_READY_TIMEOUT=${{ secrets.DB_READY_TIMEOUT || '30' }}
+        TEST_SERVER_PORT=${{ secrets.TEST_SERVER_PORT || '8001' }}
+        EOF
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run database migrations
+      run: php scripts/migrate.php
+
+    - name: Run unit tests
+      run: vendor/bin/phpunit --testsuite Unit --testdox
+
+    - name: Run controller tests
+      run: vendor/bin/phpunit --testsuite Controller --testdox
+
+    - name: Start test server for integration tests
+      run: php -S localhost:8001 public/index.php &
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: app
+        DB_USER: app
+        DB_PASSWORD: app
+
+    - name: Wait for server to start
+      run: sleep 5
+
+    - name: Run integration tests
+      run: vendor/bin/phpunit --testsuite Integration --testdox
+      env:
+        TEST_SERVER_URL: http://localhost:8001

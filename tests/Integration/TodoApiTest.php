@@ -2,13 +2,17 @@
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Integration tests for the Todo API endpoints
+ */
 final class TodoApiTest extends TestCase
 {
-    private static string $base = 'http://localhost:8000';
+    private static string $base = '';
 
     public static function setUpBeforeClass(): void
     {
-        // assume server is already running via docker compose run -p
+        // Get server URL from environment or use default
+        self::$base = getenv('TEST_SERVER_URL') ?: 'http://localhost:8000';
     }
 
     public function testHealth(): void
@@ -87,6 +91,33 @@ final class TodoApiTest extends TestCase
         $response = shell_exec('curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
         
         $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('title is required', (string)$response);
+    }
+    
+    public function testCreateTodoWithInvalidDateFormat(): void
+    {
+        $payload = json_encode([
+            'title' => 'Invalid Date Task',
+            'due_date' => '2025-12-31' // Not ISO format
+        ]);
+        
+        $response = shell_exec('curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
+        
+        $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('valid ISO date', (string)$response);
+    }
+    
+    public function testCreateTodoWithInvalidPriority(): void
+    {
+        $payload = json_encode([
+            'title' => 'Invalid Priority Task',
+            'priority' => 5 // Out of range
+        ]);
+        
+        $response = shell_exec('curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
+        
+        $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('priority must be between', (string)$response);
     }
 
     public function testGetTodoNotFound(): void
@@ -139,6 +170,63 @@ final class TodoApiTest extends TestCase
         
         $this->assertStringContainsString('400', (string)$response);
         $this->assertStringContainsString('empty', (string)$response);
+        
+        // Clean up
+        shell_exec('curl -s -X DELETE ' . escapeshellarg(self::$base . '/todos/' . $id));
+    }
+    
+    public function testUpdateTodoWithInvalidDateFormat(): void
+    {
+        // Create a task
+        $payload = json_encode(['title' => 'Date Validation Task']);
+        $created = shell_exec('curl -s -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
+        $task = json_decode((string)$created, true);
+        $id = $task['id'];
+        
+        // Try to update with invalid date format
+        $updatePayload = json_encode(['due_date' => '2025-12-31']); // Not ISO format
+        $response = shell_exec('curl -s -w "\n%{http_code}" -X PUT -H "Content-Type: application/json" -d ' . escapeshellarg($updatePayload) . ' ' . escapeshellarg(self::$base . '/todos/' . $id));
+        
+        $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('valid ISO date', (string)$response);
+        
+        // Clean up
+        shell_exec('curl -s -X DELETE ' . escapeshellarg(self::$base . '/todos/' . $id));
+    }
+    
+    public function testUpdateTodoWithInvalidPriority(): void
+    {
+        // Create a task
+        $payload = json_encode(['title' => 'Priority Validation Task']);
+        $created = shell_exec('curl -s -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
+        $task = json_decode((string)$created, true);
+        $id = $task['id'];
+        
+        // Try to update with invalid priority
+        $updatePayload = json_encode(['priority' => 5]); // Out of range
+        $response = shell_exec('curl -s -w "\n%{http_code}" -X PUT -H "Content-Type: application/json" -d ' . escapeshellarg($updatePayload) . ' ' . escapeshellarg(self::$base . '/todos/' . $id));
+        
+        $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('priority must be between', (string)$response);
+        
+        // Clean up
+        shell_exec('curl -s -X DELETE ' . escapeshellarg(self::$base . '/todos/' . $id));
+    }
+    
+    public function testUpdateTodoWithNoChanges(): void
+    {
+        // Create a task
+        $payload = json_encode(['title' => 'No Changes Task']);
+        $created = shell_exec('curl -s -X POST -H "Content-Type: application/json" -d ' . escapeshellarg($payload) . ' ' . escapeshellarg(self::$base . '/todos'));
+        $task = json_decode((string)$created, true);
+        $id = $task['id'];
+        
+        // Try to update with empty body
+        $updatePayload = json_encode([]);
+        $response = shell_exec('curl -s -w "\n%{http_code}" -X PUT -H "Content-Type: application/json" -d ' . escapeshellarg($updatePayload) . ' ' . escapeshellarg(self::$base . '/todos/' . $id));
+        
+        $this->assertStringContainsString('400', (string)$response);
+        $this->assertStringContainsString('Nothing to update', (string)$response);
         
         // Clean up
         shell_exec('curl -s -X DELETE ' . escapeshellarg(self::$base . '/todos/' . $id));

@@ -6,33 +6,58 @@ use App\Repositories\TodoRepository;
 use function App\json_response;
 use function App\read_json_input;
 
-/** HTTP handlers for Todo REST endpoints. */
+/**
+ * HTTP handlers for Todo REST endpoints.
+ * 
+ * Handles CRUD operations for todo items and renders the UI.
+ */
 final class TodoController
 {
+    /**
+     * Todo repository instance.
+     */
     private TodoRepository $repo;
 
-    public function __construct()
+    /**
+     * Constructor with dependency injection.
+     *
+     * @param TodoRepository|null $repository Optional repository instance for testing
+     */
+    public function __construct(?TodoRepository $repository = null)
     {
-        $this->repo = new TodoRepository();
+        $this->repo = $repository ?? new TodoRepository();
     }
 
-    /** GET /todos
-     *  - If Accept header contains text/html, render a simple UI page
-     *  - Otherwise, return JSON list
+    /**
+     * GET /todos
+     * - If Accept header contains text/html, render a simple UI page
+     * - Otherwise, return JSON list
+     *
+     * @return array|null Array of todos or null if HTML response
      */
-    public function index()
+    public function index(): ?array
     {
         $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
         if (stripos($accept, 'text/html') !== false) {
             $todos = $this->repo->list();
-            header('Content-Type: text/html; charset=utf-8');
-            header('Cache-Control: no-cache, no-store, must-revalidate');
-            header('Pragma: no-cache');
-            header('Expires: 0');
+            $this->setHtmlHeaders();
             echo $this->renderHtml($todos);
             return null;
         }
         return $this->repo->list();
+    }
+    
+    /**
+     * Set common HTML response headers
+     *
+     * @return void
+     */
+    private function setHtmlHeaders(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
     }
 
     private function renderHtml(array $todos): string
@@ -1236,75 +1261,249 @@ HTML;
         return $head . "\n    " . $rows . "\n" . $tail;
     }
 
-    /** GET /todos/{id} */
-    public function show(array $params)
+    /**
+     * GET /todos/{id}
+     * 
+     * @param array $params Route parameters
+     * @return array|null Todo item or error response
+     */
+    public function show(array $params): ?array
     {
-        $id = isset($params['id']) ? (int)$params['id'] : 0;
-        if ($id <= 0) {
+        $id = $this->validateId($params['id'] ?? null);
+        if ($id === null) {
             return json_response(['error' => 'Invalid id'], 400);
         }
+        
         $todo = $this->repo->findById($id);
         if (!$todo) {
             return json_response(['error' => 'Not found'], 404);
         }
+        
         return $todo;
     }
-
-    /** POST /todos */
-    public function create()
+    
+    /**
+     * Validate and convert ID parameter
+     * 
+     * @param mixed $id ID to validate
+     * @return int|null Valid ID or null if invalid
+     */
+    private function validateId($id): ?int
     {
-        $body = read_json_input();
-        $title = isset($body['title']) && is_string($body['title']) ? trim($body['title']) : '';
-        if ($title === '') {
-            return json_response(['error' => 'title is required'], 400);
-        }
-        $completed = isset($body['completed']) ? (bool)$body['completed'] : false;
-        $description = isset($body['description']) && is_string($body['description']) ? trim($body['description']) : '';
-        $startDateIso = isset($body['start_date']) && is_string($body['start_date']) && $body['start_date'] !== '' ? $body['start_date'] : null;
-        $dueDateIso = isset($body['due_date']) && is_string($body['due_date']) && $body['due_date'] !== '' ? $body['due_date'] : null;
-        $priority = isset($body['priority']) ? (int)$body['priority'] : 0;
-        $created = $this->repo->create($title, $completed, $description, $startDateIso, $dueDateIso, $priority);
-        return json_response($created, 201);
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        return $id > 0 ? $id : null;
     }
 
-    /** PUT /todos/{id} */
-    public function update(array $params)
+    /**
+     * POST /todos
+     * Create a new todo item
+     * 
+     * @return array Created todo or error response
+     */
+    public function create(): array
     {
-        $id = isset($params['id']) ? (int)$params['id'] : 0;
-        if ($id <= 0) {
+        $body = read_json_input();
+        $validationResult = $this->validateTodoData($body);
+        
+        if (isset($validationResult['error'])) {
+            return json_response($validationResult, 400);
+        }
+        
+        $created = $this->repo->create(
+            $validationResult['title'],
+            $validationResult['completed'],
+            $validationResult['description'],
+            $validationResult['start_date'],
+            $validationResult['due_date'],
+            $validationResult['priority']
+        );
+        
+        return json_response($created, 201);
+    }
+    
+    /**
+     * Validate todo input data
+     * 
+     * @param array $data Input data to validate
+     * @return array Validated data or error
+     */
+    private function validateTodoData(array $data): array
+    {
+        // Validate title (required)
+        $title = isset($data['title']) && is_string($data['title']) ? trim($data['title']) : '';
+        if ($title === '') {
+            return ['error' => 'title is required'];
+        }
+        
+        // Process other fields
+        $completed = isset($data['completed']) ? (bool)$data['completed'] : false;
+        $description = isset($data['description']) && is_string($data['description']) ? trim($data['description']) : '';
+        $startDateIso = isset($data['start_date']) && is_string($data['start_date']) && $data['start_date'] !== '' ? $data['start_date'] : null;
+        $dueDateIso = isset($data['due_date']) && is_string($data['due_date']) && $data['due_date'] !== '' ? $data['due_date'] : null;
+        $priority = isset($data['priority']) ? (int)$data['priority'] : 0;
+        
+        // Validate date formats if provided
+        if ($startDateIso !== null && !$this->isValidIsoDate($startDateIso)) {
+            return ['error' => 'start_date must be a valid ISO date string'];
+        }
+        
+        if ($dueDateIso !== null && !$this->isValidIsoDate($dueDateIso)) {
+            return ['error' => 'due_date must be a valid ISO date string'];
+        }
+        
+        // Validate priority range
+        if ($priority < 0 || $priority > 2) {
+            return ['error' => 'priority must be between 0 and 2'];
+        }
+        
+        return [
+            'title' => $title,
+            'completed' => $completed,
+            'description' => $description,
+            'start_date' => $startDateIso,
+            'due_date' => $dueDateIso,
+            'priority' => $priority
+        ];
+    }
+    
+    /**
+     * Check if a string is a valid ISO date
+     * 
+     * @param string $dateString Date string to validate
+     * @return bool True if valid ISO date
+     */
+    private function isValidIsoDate(string $dateString): bool
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/', $dateString)) {
+            $date = date_create($dateString);
+            return $date !== false && date_format($date, 'Y-m-d\TH:i:s\Z') !== false;
+        }
+        return false;
+    }
+
+    /**
+     * PUT /todos/{id}
+     * Update an existing todo item
+     * 
+     * @param array $params Route parameters
+     * @return array|null Updated todo or error response
+     */
+    public function update(array $params): ?array
+    {
+        $id = $this->validateId($params['id'] ?? null);
+        if ($id === null) {
             return json_response(['error' => 'Invalid id'], 400);
         }
+        
         $body = read_json_input();
-        $title = array_key_exists('title', $body) ? (is_string($body['title']) ? trim($body['title']) : null) : null;
-        $completed = array_key_exists('completed', $body) ? (bool)$body['completed'] : null;
-        $description = array_key_exists('description', $body) ? (is_string($body['description']) ? trim($body['description']) : null) : null;
-        $startDateIso = array_key_exists('start_date', $body) ? (is_string($body['start_date']) && $body['start_date'] !== '' ? $body['start_date'] : null) : null;
-        $dueDateIso = array_key_exists('due_date', $body) ? (is_string($body['due_date']) && $body['due_date'] !== '' ? $body['due_date'] : null) : null;
-        $priority = array_key_exists('priority', $body) ? (int)$body['priority'] : null;
-        if ($title === '') {
-            return json_response(['error' => 'title cannot be empty'], 400);
+        $validationResult = $this->validateUpdateData($body);
+        
+        if (isset($validationResult['error'])) {
+            return json_response($validationResult, 400);
         }
-        if ($title === null && $completed === null && $description === null && $startDateIso === null && $dueDateIso === null && $priority === null) {
-            return json_response(['error' => 'Nothing to update'], 400);
-        }
-        $updated = $this->repo->update($id, $title, $completed, $description, $startDateIso, $dueDateIso, $priority);
+        
+        $updated = $this->repo->update(
+            $id,
+            $validationResult['title'] ?? null,
+            $validationResult['completed'] ?? null,
+            $validationResult['description'] ?? null,
+            $validationResult['start_date'] ?? null,
+            $validationResult['due_date'] ?? null,
+            $validationResult['priority'] ?? null
+        );
+        
         if (!$updated) {
             return json_response(['error' => 'Not found'], 404);
         }
+        
         return $updated;
     }
-
-    /** DELETE /todos/{id} */
-    public function destroy(array $params)
+    
+    /**
+     * Validate todo update data
+     * 
+     * @param array $data Input data to validate
+     * @return array Validated data or error
+     */
+    private function validateUpdateData(array $data): array
     {
-        $id = isset($params['id']) ? (int)$params['id'] : 0;
-        if ($id <= 0) {
+        $result = [];
+        $hasUpdates = false;
+        
+        // Process title if present
+        if (array_key_exists('title', $data)) {
+            $title = is_string($data['title']) ? trim($data['title']) : null;
+            if ($title === '') {
+                return ['error' => 'title cannot be empty'];
+            }
+            $result['title'] = $title;
+            $hasUpdates = true;
+        }
+        
+        // Process other fields if present
+        if (array_key_exists('completed', $data)) {
+            $result['completed'] = (bool)$data['completed'];
+            $hasUpdates = true;
+        }
+        
+        if (array_key_exists('description', $data)) {
+            $result['description'] = is_string($data['description']) ? trim($data['description']) : null;
+            $hasUpdates = true;
+        }
+        
+        if (array_key_exists('start_date', $data)) {
+            $startDateIso = is_string($data['start_date']) && $data['start_date'] !== '' ? $data['start_date'] : null;
+            if ($startDateIso !== null && !$this->isValidIsoDate($startDateIso)) {
+                return ['error' => 'start_date must be a valid ISO date string'];
+            }
+            $result['start_date'] = $startDateIso;
+            $hasUpdates = true;
+        }
+        
+        if (array_key_exists('due_date', $data)) {
+            $dueDateIso = is_string($data['due_date']) && $data['due_date'] !== '' ? $data['due_date'] : null;
+            if ($dueDateIso !== null && !$this->isValidIsoDate($dueDateIso)) {
+                return ['error' => 'due_date must be a valid ISO date string'];
+            }
+            $result['due_date'] = $dueDateIso;
+            $hasUpdates = true;
+        }
+        
+        if (array_key_exists('priority', $data)) {
+            $priority = (int)$data['priority'];
+            if ($priority < 0 || $priority > 2) {
+                return ['error' => 'priority must be between 0 and 2'];
+            }
+            $result['priority'] = $priority;
+            $hasUpdates = true;
+        }
+        
+        if (!$hasUpdates) {
+            return ['error' => 'Nothing to update'];
+        }
+        
+        return $result;
+    }
+
+    /**
+     * DELETE /todos/{id}
+     * Delete a todo item
+     * 
+     * @param array $params Route parameters
+     * @return array|null Null for success or error response
+     */
+    public function destroy(array $params): ?array
+    {
+        $id = $this->validateId($params['id'] ?? null);
+        if ($id === null) {
             return json_response(['error' => 'Invalid id'], 400);
         }
+        
         $deleted = $this->repo->delete($id);
         if (!$deleted) {
             return json_response(['error' => 'Not found'], 404);
         }
+        
         http_response_code(204);
         return null; // no content
     }
