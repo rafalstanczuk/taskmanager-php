@@ -72,7 +72,7 @@ jobs:
       run: vendor/bin/phpunit --testsuite Unit --testdox
 
     - name: Run controller tests
-      run: vendor/bin/phpunit --testsuite Controller --testdox
+      run: vendor/bin/phpunit -c phpunit.controller.xml --testdox
 
     - name: Start test server for integration tests
       run: php -S localhost:8001 public/index.php &
