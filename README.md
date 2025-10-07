@@ -11,7 +11,9 @@ Simple dependency-free REST API using native PHP 8.2 features and PDO for Postgr
 ./scripts/start-server.sh
 ```
 
-Then open: **http://localhost:8000/todos**
+Then open: 
+- **http://localhost:8000/gantt** - Gantt Chart view
+- **http://localhost:8000/todos** - List View
 
 See `SERVER_QUICK_START.md` for details.
 
@@ -52,12 +54,13 @@ composer serve
 ./scripts/start-server.sh
 ```
 
-Visit `http://localhost:8000/health` or `http://localhost:8000/todos`.
+Visit `http://localhost:8000/health`, `http://localhost:8000/gantt`, or `http://localhost:8000/todos`.
 
 ### API Endpoints
 
 - GET `/health` – service health
-- GET `/todos` – list todos
+- GET `/gantt` – Gantt chart view (HTML)
+- GET `/todos` – list todos (JSON) or List view (HTML)
 - GET `/todos/{id}` – get todo
 - POST `/todos` – create todo `{ "title": "Task", "completed": false }`
 - PUT `/todos/{id}` – update fields `{ "title": "New", "completed": true }`
@@ -114,8 +117,8 @@ docker compose run --rm php vendor/bin/phpunit --testsuite Unit
 # Gantt drag logic tests (19 tests)
 docker compose run --rm php vendor/bin/phpunit tests/Unit/GanttDragLogicTest.php --testdox
 
-# Gantt timeline integration tests (10 tests)
-docker compose run --rm php vendor/bin/phpunit tests/Integration/GanttTimelineTest.php --testdox
+# Gantt chart integration tests (10 tests)
+docker compose run --rm php vendor/bin/phpunit tests/Integration/GanttChartTest.php --testdox
 ```
 
 **Test script features:**
@@ -148,6 +151,6 @@ See `docs/SERVER_MANAGEMENT.md` for complete guide.
 - 🧪 [Testing Guide](docs/TESTING.md) - 108+ tests, all suites
 - 🚀 [CI/CD Guide](docs/CI_CD.md) - GitHub Actions, GitLab CI
 - 📊 [API Reference](docs/API.md) - All endpoints with examples
-- 🎯 [Gantt Features](docs/GANTT_FEATURES.md) - Interactive timeline
+- 🎯 [Gantt Features](docs/GANTT_FEATURES.md) - Interactive Gantt chart
 - 🏗️ [Technical Overview](docs/TECHNICAL_OVERVIEW.md) - Architecture
 

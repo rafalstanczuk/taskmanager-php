@@ -35,7 +35,7 @@ This project demonstrates modern PHP development without relying on frameworks, 
                   ↓
 ┌─────────────────────────────────────┐
 │      Controllers Layer (src/)       │
-│         TodoController.php          │
+│   TodoController, GanttController   │
 └─────────────────────────────────────┘
                   ↓
 ┌─────────────────────────────────────┐
@@ -89,7 +89,8 @@ This project demonstrates modern PHP development without relying on frameworks, 
 │
 ├── src/
 │   ├── Controllers/
-│   │   └── TodoController.php    # HTTP request handlers
+│   │   ├── TodoController.php    # REST API & List View
+│   │   └── GanttController.php   # Gantt Chart View
 │   │
 │   ├── Database/
 │   │   └── Connection.php        # PDO singleton
@@ -128,8 +129,13 @@ Custom regex-based router supporting:
 - Lightweight and fast
 
 ```php
-$router->get('/todos/{id}', fn($params) => $controller->show($params));
-$router->post('/todos', fn() => $controller->create());
+// REST API routes
+$router->add('GET', '/todos/{id}', [$todo, 'show']);
+$router->add('POST', '/todos', [$todo, 'create']);
+
+// View routes
+$router->add('GET', '/gantt', [$gantt, 'index']);  // Gantt chart
+$router->add('GET', '/todos', [$todo, 'index']);   // List view
 ```
 
 ### Database Connection (`src/Database/Connection.php`)

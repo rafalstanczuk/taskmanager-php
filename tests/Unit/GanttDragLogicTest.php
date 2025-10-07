@@ -18,7 +18,7 @@ final class GanttDragLogicTest extends TestCase
     public function test_pixel_positioning_constants(): void
     {
         $MIN_DRAG_DISTANCE = 5; // pixels - click vs drag threshold
-        $PIXELS_PER_DAY = 80;   // pixels - timeline scale
+        $PIXELS_PER_DAY = 80;   // pixels - Gantt chart scale
         
         $this->assertEquals(5, $MIN_DRAG_DISTANCE);
         $this->assertEquals(80, $PIXELS_PER_DAY);
@@ -225,22 +225,22 @@ final class GanttDragLogicTest extends TestCase
      */
     public function test_boundary_clamping_for_move(): void
     {
-        $timelineWidth = 5200; // 65 days * 80px
+        $chartWidth = 5200; // 65 days * 80px
         $startWidth = 240; // Task width: 3 days * 80px
         
         // Test left boundary (negative position)
         $newLeft = -10.0;
-        $clamped = max(0, min($timelineWidth - $startWidth, $newLeft));
+        $clamped = max(0, min($chartWidth - $startWidth, $newLeft));
         $this->assertEquals(0, $clamped);
         
-        // Test right boundary (beyond timeline)
+        // Test right boundary (beyond chart)
         $newLeft = 5300.0;
-        $clamped = max(0, min($timelineWidth - $startWidth, $newLeft));
+        $clamped = max(0, min($chartWidth - $startWidth, $newLeft));
         $this->assertEquals(4960, $clamped); // 5200 - 240
         
         // Test valid range
         $newLeft = 800.0; // Day 10
-        $clamped = max(0, min($timelineWidth - $startWidth, $newLeft));
+        $clamped = max(0, min($chartWidth - $startWidth, $newLeft));
         $this->assertEquals(800, $clamped);
     }
 
@@ -292,7 +292,7 @@ final class GanttDragLogicTest extends TestCase
         $PIXELS_PER_DAY = 80;
         $pixelPosition = 800.0; // pixels
         
-        // Mock timeline dates
+        // Mock Gantt chart dates
         $minDate = new \DateTimeImmutable('2025-10-01');
         
         // Calculate day offset from pixel position

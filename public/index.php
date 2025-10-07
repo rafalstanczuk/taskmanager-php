@@ -20,6 +20,7 @@ require __DIR__ . '/../config/bootstrap.php';
 
 use App\Router;
 use App\Controllers\TodoController;
+use App\Controllers\GanttController;
 
 $router = new Router();
 
@@ -33,6 +34,10 @@ $router->add('GET', '/todos/{id}', [$todo, 'show']);
 $router->add('POST', '/todos', [$todo, 'create']);
 $router->add('PUT', '/todos/{id}', [$todo, 'update']);
 $router->add('DELETE', '/todos/{id}', [$todo, 'destroy']);
+
+// Gantt view route
+$gantt = new GanttController();
+$router->add('GET', '/gantt', [$gantt, 'index']);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');
 

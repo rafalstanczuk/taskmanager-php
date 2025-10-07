@@ -277,13 +277,32 @@ final class TodoApiTest extends TestCase
         $this->assertSame('404', trim((string)$response));
     }
 
-    public function testHtmlUiRendering(): void
+    public function testGanttChartHtmlRendering(): void
+    {
+        $response = shell_exec('curl -s ' . escapeshellarg(self::$base . '/gantt'));
+        
+        $this->assertStringContainsString('<!doctype html>', strtolower((string)$response));
+        $this->assertStringContainsString('Task Manager', (string)$response);
+        $this->assertStringContainsString('Gantt chart view', (string)$response);
+        $this->assertStringContainsString('gantt-chart', strtolower((string)$response));
+        
+        // Should NOT contain list view elements
+        $this->assertStringNotContainsString('id="list"', (string)$response);
+        $this->assertStringNotContainsString('create-form', (string)$response);
+    }
+    
+    public function testListViewHtmlRendering(): void
     {
         $response = shell_exec('curl -s -H "Accept: text/html" ' . escapeshellarg(self::$base . '/todos'));
         
         $this->assertStringContainsString('<!doctype html>', strtolower((string)$response));
         $this->assertStringContainsString('Task Manager', (string)$response);
-        $this->assertStringContainsString('gantt', strtolower((string)$response));
+        $this->assertStringContainsString('List View', (string)$response);
+        
+        // Should contain list view elements
+        $this->assertStringContainsString('id="list"', (string)$response);
+        $this->assertStringContainsString('create-form', (string)$response);
+        $this->assertStringContainsString('toolbar', strtolower((string)$response));
     }
 
     public function testJsonApiRendering(): void

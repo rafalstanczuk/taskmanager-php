@@ -18,7 +18,7 @@ final class GanttDragDropTest extends TestCase
      */
     public function test_single_click_on_task_bar_does_not_move_task(): void
     {
-        // GIVEN: A task bar in the Gantt timeline (pixel-positioned)
+        // GIVEN: A task bar in the Gantt chart (pixel-positioned)
         // WHEN: User clicks on the task bar (mousedown + mouseup at same position)
         // AND: Mouse movement is less than 5 pixels (MIN_DRAG_DISTANCE)
         // THEN: Task detail card should open
@@ -33,7 +33,7 @@ final class GanttDragDropTest extends TestCase
      */
     public function test_drag_task_beyond_threshold_moves_task(): void
     {
-        // GIVEN: A task bar in the Gantt timeline
+        // GIVEN: A task bar in the Gantt chart
         // WHEN: User presses mouse down on task bar
         // AND: Moves mouse more than 5 pixels horizontally
         // AND: Releases mouse
@@ -49,7 +49,7 @@ final class GanttDragDropTest extends TestCase
      */
     public function test_mouse_jitter_less_than_threshold_ignored(): void
     {
-        // GIVEN: A task bar in the Gantt timeline
+        // GIVEN: A task bar in the Gantt chart
         // WHEN: User presses mouse down
         // AND: Mouse moves 3 pixels (less than 5px threshold)
         // AND: Releases mouse
@@ -141,7 +141,7 @@ final class GanttDragDropTest extends TestCase
      */
     public function test_hover_on_task_bar_changes_cursor_to_move(): void
     {
-        // GIVEN: A task bar in the timeline
+        // GIVEN: A task bar in the Gantt chart
         // WHEN: User hovers over the center (not handles)
         // THEN: Cursor should be 'move'
         
@@ -262,16 +262,16 @@ final class GanttDragDropTest extends TestCase
     /**
      * Test: Drag boundaries respected (pixel-based)
      */
-    public function test_drag_respects_timeline_boundaries(): void
+    public function test_drag_respects_gantt_chart_boundaries(): void
     {
         // GIVEN: A task being dragged (positioned in pixels)
-        // WHEN: User tries to drag beyond timeline boundaries
+        // WHEN: User tries to drag beyond Gantt chart boundaries
         // THEN: Task position should be clamped
         // AND: Left edge: max(0, newLeft)
-        // AND: Right edge: min(timelineWidth - taskWidth, newLeft)
-        // WHERE: timelineWidth = dayCount * 80px
+        // AND: Right edge: min(chartWidth - taskWidth, newLeft)
+        // WHERE: chartWidth = dayCount * 80px
         
-        $this->assertTrue(true, 'Drag respects timeline boundaries (pixel-based)');
+        $this->assertTrue(true, 'Drag respects Gantt chart boundaries (pixel-based)');
     }
 
     /**
@@ -305,12 +305,12 @@ final class GanttDragDropTest extends TestCase
     /**
      * Test: Successful drag triggers refresh
      */
-    public function test_successful_drag_refreshes_timeline(): void
+    public function test_successful_drag_refreshes_gantt_chart(): void
     {
         // GIVEN: A task successfully moved/resized
         // WHEN: API returns success
         // THEN: refresh() function should be called
-        // AND: Timeline should re-render with new positions
+        // AND: Gantt chart should re-render with new positions
         // AND: Task list should also update
         
         $this->assertTrue(true, 'Successful drag triggers full UI refresh');

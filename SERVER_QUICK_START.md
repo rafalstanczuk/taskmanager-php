@@ -8,7 +8,9 @@ One-page guide to starting and managing the development server.
 ./scripts/start-server.sh
 ```
 
-Then open: **http://localhost:8000/todos**
+Then open: 
+- **http://localhost:8000/gantt** - Gantt Chart view
+- **http://localhost:8000/todos** - List View
 
 ## Common Commands
 
@@ -40,7 +42,8 @@ The script detects if a server is already running and prevents starting duplicat
 # If already running, you'll see:
 ⚠ Server is already running!
   Port: 8000
-  URL: http://localhost:8000/todos
+  URLs: http://localhost:8000/gantt
+        http://localhost:8000/todos
 ```
 
 ### Port Conflict Detection
@@ -70,7 +73,8 @@ Automatically starts PostgreSQL and waits for it to be ready (30-second timeout 
 ▶ Starting PHP Development Server
 ✓ Server started successfully!
 
-ℹ Access: http://localhost:8000/todos
+ℹ Access: http://localhost:8000/gantt (Gantt Chart)
+         http://localhost:8000/todos (List View)
 ℹ Logs: docker logs -f phpproject_server
 ```
 
@@ -81,7 +85,8 @@ Automatically starts PostgreSQL and waits for it to be ready (30-second timeout 
 
   Container: phpproject_server
   Port: 8000
-  URL: http://localhost:8000/todos
+  URLs: http://localhost:8000/gantt
+        http://localhost:8000/todos
 
 ℹ Restart: ./scripts/start-server.sh --restart
 ℹ Stop: ./scripts/start-server.sh --stop

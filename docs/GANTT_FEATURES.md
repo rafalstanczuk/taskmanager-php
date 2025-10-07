@@ -1,23 +1,23 @@
 # Gantt Chart Features
 
-Professional 2-month timeline with Excel-style columns, weekend highlighting, and interactive drag-and-drop scheduling.
+Professional 2-month Gantt chart with Excel-style columns, weekend highlighting, and interactive drag-and-drop scheduling.
 
 ## Overview
 
-The Task Manager includes a sophisticated Gantt chart that provides visual timeline management spanning exactly 2 months (60 days) with pixel-perfect alignment, alternating column backgrounds, weekend highlighting, and intuitive drag-and-drop interactions for task scheduling.
+The Task Manager includes a sophisticated Gantt chart that provides visual project management spanning exactly 2 months (60 days) with pixel-perfect alignment, alternating column backgrounds, weekend highlighting, and intuitive drag-and-drop interactions for task scheduling.
 
 ## Visual Preview
 
-### Timeline View
+### Gantt Chart View
 
-![Gantt Chart Timeline View](images/gantt-timeline-view.png)
+![Gantt Chart View](images/gantt-timeline-view.png)
 
-The main timeline view showcases:
+The main Gantt chart view showcases:
 - **Excel-style alternating columns** with weekend highlighting in amber
 - **Color-coded task bars** by priority (red=high, amber=medium, blue=low)
 - **Today marker** as a blue vertical line with column highlight
 - **Pixel-perfect alignment** at 80px per day
-- **Scrollable horizontal timeline** spanning 2 months (5,200px wide)
+- **Scrollable horizontal chart** spanning 2 months (5,200px wide)
 - **Positioned prominently** at the top of the page for immediate visibility
 
 ### Task Detail Card
@@ -34,10 +34,10 @@ Click any task bar to open the detail card showing:
 
 ## Core Features
 
-### 1. Visual Timeline
+### 1. Visual Gantt Chart
 
 **Date Range Display**
-- **2-Month Timeline:** Spans exactly 60 days (-30 to +30 days from today)
+- **2-Month Gantt Chart:** Spans exactly 60 days (-30 to +30 days from today)
 - **Pixel-Perfect Alignment:** 80px per day with 200px task name offset
 - **Scrollable:** Horizontal scrolling for full date range (5,400px wide)
 - **Date Headers:** Month and day format (e.g., "Sep 4", "Oct 6")
@@ -51,7 +51,7 @@ Click any task bar to open the detail card showing:
 **Today Marker**
 - **Blue vertical line** indicates current date
 - **Circular marker** at the top
-- **Column highlight** extends through entire timeline
+- **Column highlight** extends through entire chart
 - Always visible when in range
 
 **Task Positioning**
@@ -232,11 +232,11 @@ Click any task bar to open detail card showing:
 - Move: PUT with `start_date` and `due_date`
 - Resize start: PUT with `start_date` only
 - Resize end: PUT with `due_date` only
-- Timeline refreshes after successful save
+- Gantt chart refreshes after successful save
 
 **Error Handling**
 - Failed API calls logged to console
-- Timeline remains unchanged on error
+- Gantt chart remains unchanged on error
 - User can retry operation
 
 ## Keyboard Shortcuts
@@ -248,12 +248,12 @@ Click any task bar to open detail card showing:
 ## Responsive Design
 
 ### Horizontal Scrolling
-- Timeline scrolls for long date ranges
+- Gantt chart scrolls for long date ranges
 - Sticky date headers
 - Today marker moves with scroll
 
 ### Task Bar Sizing
-- Minimum width: 5% of timeline
+- Minimum width: 5% of chart width
 - Prevents invisible tasks
 - Maintains readability
 
@@ -263,7 +263,7 @@ When no tasks have due dates:
 
 ```
 📅 No tasks with due dates
-Add due dates to see the timeline
+Add due dates to see the Gantt chart
 ```
 
 ## Usage Tips
@@ -271,7 +271,7 @@ Add due dates to see the timeline
 ### For Effective Scheduling
 
 1. **Quick Reschedule** - Drag task bar to move both dates
-2. **Extend Timeline** - Drag right handle to extend due date
+2. **Extend Duration** - Drag right handle to extend due date
 3. **Start Earlier** - Drag left handle to move start date back
 4. **View Details** - Click (don't drag) to see full information
 
@@ -280,7 +280,7 @@ Add due dates to see the timeline
 - Use consistent date formats
 - Set realistic deadlines
 - Color-code by priority
-- Review timeline regularly
+- Review Gantt chart regularly
 - Update completed tasks
 
 ## Accessibility Features
@@ -313,7 +313,7 @@ Requires JavaScript enabled for interactive features.
 
 - Only tasks with due dates shown
 - Smart refresh after changes
-- Optimized timeline calculations
+- Optimized Gantt chart calculations
 
 ## Data Flow
 
@@ -328,7 +328,7 @@ API Request (PUT /todos/{id})
     ↓
 Database Update
     ↓
-Refresh Timeline
+Refresh Gantt Chart
     ↓
 Updated Visual Display
 ```
@@ -343,7 +343,7 @@ Potential features for future development:
 - Dependency arrows between tasks
 - Milestone markers
 - Resource allocation
-- Export timeline as image/PDF
+- Export Gantt chart as image/PDF
 - Zoom levels (day/week/month view)
 - Drag-to-create new tasks
 - Snap-to-grid alignment

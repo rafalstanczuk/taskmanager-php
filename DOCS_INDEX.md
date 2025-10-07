@@ -24,7 +24,7 @@ Complete guide to the Task Manager PHP project documentation.
 
 | Document | Description |
 |----------|-------------|
-| [Gantt Features](docs/GANTT_FEATURES.md) | 2-month timeline with Excel-style columns, weekend highlighting, drag-and-drop, and pixel-perfect alignment |
+| [Gantt Features](docs/GANTT_FEATURES.md) | 2-month Gantt chart with Excel-style columns, weekend highlighting, drag-and-drop, and pixel-perfect alignment |
 | [Gantt Drag & Drop](docs/GANTT_DRAG_DROP.md) | Drag-and-drop implementation details and task resize functionality |
 
 ### Testing Documentation
@@ -63,7 +63,7 @@ Complete guide to the Task Manager PHP project documentation.
 → [README.md#api-endpoints](README.md#api-endpoints) - Quick endpoint list
 
 #### Understand the Gantt Chart
-→ [Gantt Features](docs/GANTT_FEATURES.md) - 2-month timeline, Excel-style columns, weekend highlighting, UTC date handling  
+→ [Gantt Features](docs/GANTT_FEATURES.md) - 2-month Gantt chart, Excel-style columns, weekend highlighting, UTC date handling  
 → [Gantt Drag & Drop](docs/GANTT_DRAG_DROP.md) - Drag-and-drop, task resize, pixel-perfect positioning
 
 #### Set Up CI/CD
@@ -80,7 +80,7 @@ Complete guide to the Task Manager PHP project documentation.
 ### Features
 - ✅ REST API with full CRUD operations
 - ✅ PostgreSQL database with migrations and UTC date handling
-- ✅ Interactive Gantt chart with 2-month timeline
+- ✅ Interactive Gantt chart with 2-month date range
 - ✅ Excel-style column backgrounds with weekend highlighting
 - ✅ Drag-and-drop task scheduling with pixel-perfect alignment
 - ✅ Task prioritization with color coding (High/Medium/Low)
@@ -98,7 +98,7 @@ Complete guide to the Task Manager PHP project documentation.
 
 - **Integration Tests**: 25+ tests
   - Todo API: 15+ tests
-  - Gantt Timeline: 10 tests
+  - Gantt Chart: 10 tests
 
 - **UI Specifications**: 21 tests
   - Gantt Drag & Drop: 21 tests

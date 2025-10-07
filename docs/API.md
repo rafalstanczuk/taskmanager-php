@@ -55,17 +55,49 @@ Accept: application/json
 ]
 ```
 
-**HTML UI:**
+**HTML List View:**
 ```http
 GET /todos
 Accept: text/html
 ```
 
 Returns an interactive HTML interface with:
-- Task list with filtering
-- Gantt chart timeline
-- Drag-and-drop scheduling
-- Inline editing
+- Task list table with checkboxes
+- Add task form
+- Bulk operations toolbar
+- Filtering by priority and completion status
+- Inline editing of tasks
+- Gantt chart preview
+
+---
+
+### Gantt Chart View
+
+Display interactive Gantt chart for visual project management.
+
+**Request:**
+```http
+GET /gantt
+```
+
+**Response:** `200 OK` (HTML)
+
+Returns a full-page interactive Gantt chart interface with:
+- Visual timeline spanning all task dates
+- Draggable task bars (move to reschedule)
+- Resizable bars (adjust start/end dates)
+- Priority color coding (red/amber/blue)
+- Weekend highlighting
+- Today marker line
+- Task detail modal on click
+- Pixel-perfect 80px-per-day positioning
+
+**Features:**
+- Click task bar to view details
+- Drag task bar to move (preserves duration)
+- Drag left edge to change start date
+- Drag right edge to change due date
+- Minimum 5px drag threshold prevents accidental moves
 
 ---
 
