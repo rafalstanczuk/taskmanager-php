@@ -1,6 +1,7 @@
 {
     "name": "example/php-rest-api",
     "description": "Simple PHP 8.2 REST API with PostgreSQL (no external deps required)",
+    "license": "Apache-2.0",
     "type": "project",
     "require": {
         "php": "^8.2",
