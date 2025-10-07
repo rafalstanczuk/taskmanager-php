@@ -2,9 +2,10 @@ name: PHP Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -90,3 +91,35 @@ jobs:
       run: vendor/bin/phpunit --testsuite Integration --testdox
       env:
         TEST_SERVER_URL: http://localhost:8001
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_pgsql
+        tools: composer:v2
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-dev
+      
+    - name: Check PHP syntax
+      run: |
+        find src tests -name "*.php" -exec php -l {} \;
+
+    - name: Run PHP Code Sniffer
+      run: |
+        if [ -f vendor/bin/phpcs ]; then
+          vendor/bin/phpcs --standard=PSR12 src tests
+        else
+          echo "PHP Code Sniffer not found, skipping"
+        fi
