@@ -184,6 +184,30 @@ run_unit_tests() {
     fi
 }
 
+# Run controller tests
+run_controller_tests() {
+    log_section "Running Controller Tests"
+    
+    cd "${PROJECT_ROOT}"
+    
+    local test_args="${1:-}"
+    
+    if [ -n "$test_args" ]; then
+        docker compose run --rm php vendor/bin/phpunit -c phpunit.controller.xml $test_args
+    else
+        docker compose run --rm php vendor/bin/phpunit -c phpunit.controller.xml --testdox
+    fi
+    
+    local exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        log_success "Controller tests passed"
+    else
+        log_error "Controller tests failed"
+        return $exit_code
+    fi
+}
+
 # Run integration tests (optional, with proper setup)
 run_integration_tests() {
     log_section "Running Integration Tests"
@@ -226,6 +250,8 @@ generate_report() {
     echo ""
     docker compose run --rm php vendor/bin/phpunit --testsuite Unit || true
     echo ""
+    docker compose run --rm php vendor/bin/phpunit -c phpunit.controller.xml || true
+    echo ""
     
     log_success "Tests completed successfully!"
     log_info "For integration testing, start the server manually:"
@@ -236,6 +262,7 @@ generate_report() {
 # Main execution
 main() {
     local skip_integration=false
+    local skip_controller=false
     local verbose=false
     
     # Parse arguments
@@ -243,6 +270,10 @@ main() {
         case $1 in
             --skip-integration)
                 skip_integration=true
+                shift
+                ;;
+            --skip-controller)
+                skip_controller=true
                 shift
                 ;;
             --verbose|-v)
@@ -257,6 +288,7 @@ Run the PHP project test suite following CI/CD best practices.
 
 OPTIONS:
     --skip-integration    Skip integration tests (recommended for CI/CD)
+    --skip-controller     Skip controller tests
     --verbose, -v         Show verbose output
     --help, -h            Show this help message
 
@@ -266,7 +298,8 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
     $(basename "$0")                    # Run all tests
-    $(basename "$0") --skip-integration # Run only unit tests (CI/CD mode)
+    $(basename "$0") --skip-integration # Run only unit and controller tests
+    $(basename "$0") --skip-controller  # Run without controller tests
     $(basename "$0") --verbose          # Run with verbose output
 
 EOF
@@ -299,6 +332,17 @@ EOF
         run_unit_tests "--verbose" || exit 1
     else
         run_unit_tests || exit 1
+    fi
+    
+    # Run controller tests
+    if [ "$skip_controller" = false ]; then
+        if [ "$verbose" = true ]; then
+            run_controller_tests "--verbose" || exit 1
+        else
+            run_controller_tests || exit 1
+        fi
+    else
+        log_info "Controller tests skipped"
     fi
     
     # Optionally run integration tests

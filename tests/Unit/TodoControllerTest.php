@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Controllers\TodoController;
-use App\Repositories\TodoRepository;
+use App\Repositories\TodoRepositoryInterface;
 
 final class TodoControllerTest extends TestCase
 {
@@ -11,7 +11,7 @@ final class TodoControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockRepo = $this->createMock(TodoRepository::class);
+        $this->mockRepo = $this->createMock(TodoRepositoryInterface::class);
         $this->controller = new TodoController($this->mockRepo);
     }
 

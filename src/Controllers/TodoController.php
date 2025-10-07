@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Repositories\TodoRepository;
+use App\Repositories\TodoRepositoryInterface;
 use function App\json_response;
 use function App\read_json_input;
 
@@ -16,14 +17,14 @@ final class TodoController
     /**
      * Todo repository instance.
      */
-    private TodoRepository $repo;
+    private TodoRepositoryInterface $repo;
 
     /**
      * Constructor with dependency injection.
      *
-     * @param TodoRepository|null $repository Optional repository instance for testing
+     * @param TodoRepositoryInterface|null $repository Optional repository instance for testing
      */
-    public function __construct(?TodoRepository $repository = null)
+    public function __construct(?TodoRepositoryInterface $repository = null)
     {
         $this->repo = $repository ?? new TodoRepository();
     }

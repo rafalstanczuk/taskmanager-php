@@ -7,7 +7,7 @@ use App\Domain\Task;
 use PDO;
 
 /** Data access for the todos table. */
-final class TodoRepository
+final class TodoRepository implements TodoRepositoryInterface
 {
     public function list(): array
     {
